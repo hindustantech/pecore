@@ -74,7 +74,6 @@ export const loginEmployee = async (req, res) => {
                 id: employee._id,
                 name: employee.name,
                 email: employee.email,
-                employeeId: employee.employeeId,
                 department: employee.department,
                 role: employee.role,
             },
