@@ -9,12 +9,7 @@ const employeeSchema = new mongoose.Schema(
             required: [true, "Name is required"],
             trim: true,
         },
-        // employeeId: {
-        //     type: String,
-        //     unique: true,
-        //     required: [true, "Employee ID is required"],
-        //     trim: true,
-        // },
+        
         email: {
             type: String,
             unique: true,
