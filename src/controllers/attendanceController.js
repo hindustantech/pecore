@@ -1,6 +1,7 @@
 import Attendance from "../models/Attendance.js";
 import mongoose from "mongoose";
 
+import Employee from "../models/Employee.js";
 // Office Location (Patna, Bihar)
 const OFFICE = {
     latitude: 25.6100,
@@ -532,6 +533,7 @@ export const getAttendanceReport = async (req, res) => {
             const session = record.sessions[0]; // Assuming first session for daily view
 
             return {
+                id:record._id,
                 date: record.date.toISOString().split('T')[0],
                 employee: record.employee.name,
                 checkIn: session?.checkIn ? formatTime(session.checkIn) : '--',
