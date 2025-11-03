@@ -317,3 +317,173 @@ export const getMonthlySummary = async (req, res) => {
         });
     }
 };
+
+
+
+
+// GET EMPLOYEE ATTENDANCE LOGS (Paginated)
+export const getAttendanceByEmployeeAdmin = async (req, res) => {
+    try {
+        const employeeId = req.query.employeeId;
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+        const skip = (page - 1) * limit;
+
+        const totalLogs = await Attendance.countDocuments({ employee: employeeId });
+
+        const logs = await Attendance.find({ employee: employeeId })
+            .sort({ date: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        return res.status(200).json({
+            success: true,
+            pagination: {
+                currentPage: page,
+                totalPages: Math.ceil(totalLogs / limit),
+                totalLogs,
+                hasNext: page < Math.ceil(totalLogs / limit),
+                hasPrev: page > 1,
+            },
+            results: logs.length,
+            data: logs,
+        });
+    } catch (error) {
+        console.error("getAttendanceByEmployee error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch logs",
+            error: error.message,
+        });
+    }
+};
+
+// DAILY REPORT (Total Hours per Day)
+export const getDailyReportAdmin = async (req, res) => {
+    try {
+        const employeeId = req.query.employeeId;
+
+        const report = await Attendance.aggregate([
+            { $match: { employee: new mongoose.Types.ObjectId(employeeId) } },
+            { $unwind: "$sessions" },
+            {
+                $match: {
+                    "sessions.checkIn": { $exists: true },
+                    "sessions.checkOut": { $exists: true },
+                },
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+                    totalMinutes: {
+                        $sum: {
+                            $dateDiff: {
+                                startDate: "$sessions.checkIn",
+                                endDate: "$sessions.checkOut",
+                                unit: "minute",
+                            },
+                        },
+                    },
+                },
+            },
+            {
+                $project: {
+                    date: "$_id",
+                    totalHours: { $divide: ["$totalMinutes", 60] },
+                },
+            },
+            { $sort: { date: -1 } },
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            report,
+        });
+    } catch (error) {
+        console.error("getDailyReport error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching daily report",
+            error: error.message,
+        });
+    }
+};
+
+// MONTHLY SUMMARY (Hours per Day in a Month)
+export const getMonthlySummaryAdmin = async (req, res) => {
+    try {
+        const employeeId = req.query.employeeId;
+        const { month, year } = req.query;
+
+        if (!month || !year) {
+            return res.status(400).json({
+                success: false,
+                message: "month and year query params are required",
+            });
+        }
+
+        const monthNum = parseInt(month);
+        const yearNum = parseInt(year);
+
+        if (isNaN(monthNum) || isNaN(yearNum) || monthNum < 1 || monthNum > 12) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid month or year",
+            });
+        }
+
+        const startDate = new Date(yearNum, monthNum - 1, 1);
+        const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+
+        const summary = await Attendance.aggregate([
+            {
+                $match: {
+                    employee: new mongoose.Types.ObjectId(employeeId),
+                    date: { $gte: startDate, $lte: endDate },
+                },
+            },
+            { $unwind: "$sessions" },
+            {
+                $match: {
+                    "sessions.checkIn": { $exists: true },
+                    "sessions.checkOut": { $exists: true },
+                },
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+                    totalMinutes: {
+                        $sum: {
+                            $dateDiff: {
+                                startDate: "$sessions.checkIn",
+                                endDate: "$sessions.checkOut",
+                                unit: "minute",
+                            },
+                        },
+                    },
+                },
+            },
+            {
+                $project: {
+                    date: "$_id",
+                    totalHours: { $round: [{ $divide: ["$totalMinutes", 60] }, 2] },
+                },
+            },
+            { $sort: { date: 1 } },
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            month: `${yearNum}-${String(monthNum).padStart(2, "0")}`,
+            summary,
+        });
+    } catch (error) {
+        console.error("getMonthlySummary error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching monthly summary",
+            error: error.message,
+        });
+    }
+};
