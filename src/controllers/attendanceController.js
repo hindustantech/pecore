@@ -30,7 +30,7 @@ const haversineDistance = (lat1, lon1, lat2, lon2) => {
 // MARK ATTENDANCE (Check-In / Check-Out)
 export const markAttendance = async (req, res) => {
     try {
-        const { checkType, latitude, longitude, locationStatus } = req.body;
+        const { checkType, latitude, longitude, locationStatus ,comment} = req.body;
         const selfieUrl = req.file?.path;
         const employeeId = req.user.id;
 
@@ -110,6 +110,7 @@ export const markAttendance = async (req, res) => {
 
             attendance.sessions.push({
                 checkIn: new Date(),
+                comment,
                 checkInSelfie: selfieUrl,
                 checkInLocation: {
                     type: "Point",
