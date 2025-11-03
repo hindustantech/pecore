@@ -30,7 +30,7 @@ const haversineDistance = (lat1, lon1, lat2, lon2) => {
 // MARK ATTENDANCE (Check-In / Check-Out)
 export const markAttendance = async (req, res) => {
     try {
-        const { checkType, latitude, longitude, locationStatus ,comment} = req.body;
+        const { checkType, latitude, longitude, locationStatus, comment } = req.body;
         const selfieUrl = req.file?.path;
         const employeeId = req.user.id;
 
@@ -534,7 +534,7 @@ export const getAttendanceReport = async (req, res) => {
             const session = record.sessions[0]; // Assuming first session for daily view
 
             return {
-                id:record._id,
+                id: record._id,
                 date: record.date.toISOString().split('T')[0],
                 employee: record.employee.name,
                 checkIn: session?.checkIn ? formatTime(session.checkIn) : '--',
