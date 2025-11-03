@@ -87,52 +87,9 @@ export const loginEmployee = async (req, res) => {
 };
 
 
-
-
-
-
-
-// 🔒 Input sanitization utilities
-const sanitizeInput = (input) => {
-    if (typeof input === 'string') {
-        return input.trim().replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    }
-    return input;
-};
-
-const sanitizeEmail = (email) => {
-    return email.toLowerCase().trim();
-};
-
-const sanitizePhone = (phone) => {
-    return phone.replace(/[^\d+-\s]/g, '').trim();
-};
-
-const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-};
-
-const validatePhone = (phone) => {
-    const phoneRegex = /^[\d\s+()-]{10,}$/;
-    return phoneRegex.test(phone);
-};
-
-const sanitizeObject = (obj) => {
-    const sanitized = {};
-    for (const [key, value] of Object.entries(obj)) {
-        if (typeof value === 'string') {
-            sanitized[key] = sanitizeInput(value);
-        } else {
-            sanitized[key] = value;
-        }
-    }
-    return sanitized;
-};
-
 // ✅ Get all employees with search, filter, and pagination
 export const getAllEmployees = asyncHandler(async (req, res) => {
-    // Sanitize query parameters
+    // Get query parameters
     const {
         page = 1,
         limit = 10,
@@ -142,26 +99,17 @@ export const getAllEmployees = asyncHandler(async (req, res) => {
         sortOrder = "desc"
     } = req.query;
 
-    const sanitizedQuery = sanitizeObject({
-        page,
-        limit,
-        search,
-        department,
-        sortBy,
-        sortOrder
-    });
-
     // Validate and parse pagination parameters
-    const pageNum = Math.max(1, parseInt(sanitizedQuery.page) || 1);
-    const limitNum = Math.min(100, Math.max(1, parseInt(sanitizedQuery.limit) || 10));
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 10));
 
     // Validate sort parameters
     const allowedSortFields = ['name', 'email', 'department', 'position', 'createdAt', 'updatedAt'];
-    const sortField = allowedSortFields.includes(sanitizedQuery.sortBy)
-        ? sanitizedQuery.sortBy
+    const sortField = allowedSortFields.includes(sortBy)
+        ? sortBy
         : 'createdAt';
 
-    const sortDirection = sanitizedQuery.sortOrder === 'asc' ? 1 : -1;
+    const sortDirection = sortOrder === 'asc' ? 1 : -1;
 
     // Build search query
     const searchQuery = {
@@ -169,19 +117,19 @@ export const getAllEmployees = asyncHandler(async (req, res) => {
     };
 
     // Add search conditions if provided
-    if (sanitizedQuery.search) {
+    if (search) {
         searchQuery.$or = [
-            { name: { $regex: sanitizeInput(sanitizedQuery.search), $options: "i" } },
-            { email: { $regex: sanitizeInput(sanitizedQuery.search), $options: "i" } },
-            { department: { $regex: sanitizeInput(sanitizedQuery.search), $options: "i" } },
-            { position: { $regex: sanitizeInput(sanitizedQuery.search), $options: "i" } }
+            { name: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+            { department: { $regex: search, $options: "i" } },
+            { position: { $regex: search, $options: "i" } }
         ];
     }
 
     // Add department filter if provided
-    if (sanitizedQuery.department) {
+    if (department) {
         searchQuery.department = {
-            $regex: sanitizeInput(sanitizedQuery.department),
+            $regex: department,
             $options: "i"
         };
     }
@@ -265,9 +213,6 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
 
 // ✅ Create new employee
 export const createEmployee = asyncHandler(async (req, res) => {
-    // Sanitize input data
-    const sanitizedData = sanitizeObject(req.body);
-
     const {
         name,
         email,
@@ -277,8 +222,7 @@ export const createEmployee = asyncHandler(async (req, res) => {
         position,
         location,
         joinDate,
-
-    } = sanitizedData;
+    } = req.body;
 
     // Validate required fields
     if (!name || !email) {
@@ -289,7 +233,8 @@ export const createEmployee = asyncHandler(async (req, res) => {
     }
 
     // Validate email format
-    if (!validateEmail(email)) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
         return res.status(400).json({
             success: false,
             message: "Please provide a valid email address"
@@ -297,7 +242,8 @@ export const createEmployee = asyncHandler(async (req, res) => {
     }
 
     // Validate phone if provided
-    if (phone && !validatePhone(phone)) {
+    const phoneRegex = /^[\d\s+()-]{10,}$/;
+    if (phone && !phoneRegex.test(phone)) {
         return res.status(400).json({
             success: false,
             message: "Please provide a valid phone number"
@@ -314,8 +260,7 @@ export const createEmployee = asyncHandler(async (req, res) => {
 
     try {
         // Check if employee already exists
-        const sanitizedEmail = sanitizeEmail(email);
-        const existingEmployee = await Employee.findOne({ email: sanitizedEmail });
+        const existingEmployee = await Employee.findOne({ email: email.toLowerCase() });
 
         if (existingEmployee) {
             return res.status(409).json({
@@ -324,17 +269,16 @@ export const createEmployee = asyncHandler(async (req, res) => {
             });
         }
 
-        // Create new employee with sanitized data
+        // Create new employee
         const employee = await Employee.create({
-            name: sanitizeInput(name),
-            email: sanitizedEmail,
+            name,
+            email: email.toLowerCase(),
             password: password || `TempPass${Math.random().toString(36).slice(-8)}`,
-            phone: phone ? sanitizePhone(phone) : undefined,
-            department: department ? sanitizeInput(department) : undefined,
-            position: position ? sanitizeInput(position) : undefined,
-            location: location ? sanitizeInput(location) : "Patna, Bihar",
+            phone,
+            department,
+            position,
+            location: location || "Patna, Bihar",
             joinDate: joinDate || new Date(),
-
         });
 
         const employeeResponse = employee.toJSON();
@@ -374,9 +318,7 @@ export const updateEmployee = asyncHandler(async (req, res) => {
         });
     }
 
-    // Sanitize input data
-    const sanitizedData = sanitizeObject(req.body);
-    const updateData = { ...sanitizedData };
+    const updateData = { ...req.body };
 
     // Remove sensitive fields that shouldn't be updated via this endpoint
     delete updateData.password;
@@ -384,7 +326,8 @@ export const updateEmployee = asyncHandler(async (req, res) => {
     delete updateData.isActive;
 
     // Validate email if provided
-    if (updateData.email && !validateEmail(updateData.email)) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (updateData.email && !emailRegex.test(updateData.email)) {
         return res.status(400).json({
             success: false,
             message: "Please provide a valid email address"
@@ -392,20 +335,18 @@ export const updateEmployee = asyncHandler(async (req, res) => {
     }
 
     // Validate phone if provided
-    if (updateData.phone && !validatePhone(updateData.phone)) {
+    const phoneRegex = /^[\d\s+()-]{10,}$/;
+    if (updateData.phone && !phoneRegex.test(updateData.phone)) {
         return res.status(400).json({
             success: false,
             message: "Please provide a valid phone number"
         });
     }
 
-    // Sanitize specific fields
-    if (updateData.email) updateData.email = sanitizeEmail(updateData.email);
-    if (updateData.phone) updateData.phone = sanitizePhone(updateData.phone);
-    if (updateData.name) updateData.name = sanitizeInput(updateData.name);
-    if (updateData.department) updateData.department = sanitizeInput(updateData.department);
-    if (updateData.position) updateData.position = sanitizeInput(updateData.position);
-    if (updateData.location) updateData.location = sanitizeInput(updateData.location);
+    // Normalize email if provided
+    if (updateData.email) {
+        updateData.email = updateData.email.toLowerCase();
+    }
 
     try {
         const employee = await Employee.findByIdAndUpdate(
@@ -585,4 +526,3 @@ export const getEmployeeStats = asyncHandler(async (req, res) => {
         });
     }
 });
-
