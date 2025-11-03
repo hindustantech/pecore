@@ -39,6 +39,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/dashboard", darsboardroute);
 
 app.use(errorHandler);
 
