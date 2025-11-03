@@ -487,3 +487,226 @@ export const getMonthlySummaryAdmin = async (req, res) => {
         });
     }
 };
+
+
+
+
+
+
+
+
+// Get Attendance Report Controller
+export const getAttendanceReport = async (req, res) => {
+    try {
+        const {
+            viewMode = 'daily',
+            employee = 'all',
+            dateRange,
+            page = 1,
+            limit = 10
+        } = req.query;
+
+        // Build query object
+        const query = {};
+
+        if (employee !== 'all') {
+            query.employee = employee;
+        }
+
+        if (dateRange && dateRange.start && dateRange.end) {
+            query.date = {
+                $gte: new Date(dateRange.start),
+                $lte: new Date(dateRange.end)
+            };
+        }
+
+        // Fetch attendance records
+        const attendanceRecords = await Attendance.find(query)
+            .populate('employee', 'name email department')
+            .sort({ date: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit));
+
+        // Format records for frontend
+        const formattedRecords = attendanceRecords.map(record => {
+            const session = record.sessions[0]; // Assuming first session for daily view
+
+            return {
+                date: record.date.toISOString().split('T')[0],
+                employee: record.employee.name,
+                checkIn: session?.checkIn ? formatTime(session.checkIn) : '--',
+                checkOut: session?.checkOut ? formatTime(session.checkOut) : '--',
+                hours: calculateHours(session?.checkIn, session?.checkOut),
+                location: getLocationString(session?.checkInLocation),
+                status: determineStatus(session),
+                actions: {
+                    viewLog: true,
+                    viewImage: !!(session?.checkInSelfie || session?.checkOutSelfie)
+                }
+            };
+        });
+
+        // Get total count for pagination
+        const total = await Attendance.countDocuments(query);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                records: formattedRecords,
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching attendance report:', error);
+        res.status(500).json({
+            success: false,
+            data: {
+                records: [],
+                pagination: {
+                    page: 1,
+                    limit: 10,
+                    total: 0,
+                    pages: 0
+                }
+            },
+            message: 'Error fetching attendance report'
+        });
+    }
+};
+
+// Export Report Controller
+export const exportAttendanceReport = async (req, res) => {
+    try {
+        const { viewMode, employee, dateRange } = req.query;
+
+        // Build query object
+        const query = {};
+
+        if (employee && employee !== 'all') {
+            query.employee = employee;
+        }
+
+        if (dateRange && dateRange.start && dateRange.end) {
+            query.date = {
+                $gte: new Date(dateRange.start),
+                $lte: new Date(dateRange.end)
+            };
+        }
+
+        // Fetch data for export
+        const attendanceRecords = await Attendance.find(query)
+            .populate('employee', 'name email department position')
+            .sort({ date: -1 });
+
+        // Generate CSV data
+        const csvData = generateCSV(attendanceRecords);
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=attendance-report-${Date.now()}.csv`);
+        res.send(csvData);
+
+    } catch (error) {
+        console.error('Error exporting attendance report:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error exporting attendance report'
+        });
+    }
+};
+
+// Get single attendance log with images
+export const getAttendanceLog = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const attendance = await Attendance.findById(id)
+            .populate('employee', 'name email department position');
+
+        if (!attendance) {
+            return res.status(404).json({
+                success: false,
+                message: 'Attendance record not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: attendance
+        });
+
+    } catch (error) {
+        console.error('Error fetching attendance log:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching attendance log'
+        });
+    }
+};
+
+// Helper Functions
+const formatTime = (date) => {
+    return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+};
+
+const calculateHours = (checkIn, checkOut) => {
+    if (!checkIn || !checkOut) return '--';
+
+    const diffMs = checkOut.getTime() - checkIn.getTime();
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hours === 0 && minutes > 0) {
+        return `${minutes}m`;
+    } else if (minutes > 0) {
+        return `${hours}h ${minutes}m`;
+    } else {
+        return `${hours}h`;
+    }
+};
+
+const getLocationString = (location) => {
+    if (!location) return 'Remote';
+
+    // You can add logic here to determine office floor based on coordinates
+    // For now, returning a default value
+    return 'Office Floor 2';
+};
+
+const determineStatus = (session) => {
+    if (!session?.checkIn) return 'absent';
+    if (!session?.checkOut) return 'present';
+    return 'present';
+};
+
+const generateCSV = (attendanceRecords) => {
+    const headers = ['Date', 'Employee', 'Check In', 'Check Out', 'Hours', 'Location', 'Status'];
+
+    let csv = headers.join(',') + '\n';
+
+    attendanceRecords.forEach(record => {
+        const session = record.sessions[0];
+        const row = [
+            record.date.toISOString().split('T')[0],
+            `"${record.employee.name}"`,
+            session?.checkIn ? formatTime(session.checkIn) : '--',
+            session?.checkOut ? formatTime(session.checkOut) : '--',
+            calculateHours(session?.checkIn, session?.checkOut),
+            getLocationString(session?.checkInLocation),
+            determineStatus(session)
+        ];
+
+        csv += row.join(',') + '\n';
+    });
+
+    return csv;
+};
