@@ -12,11 +12,15 @@ import {
     getAttendanceLog
 } from "../controllers/attendanceController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import upload from "../middleware/upload.js";
+// import upload {c}from "../middleware/upload.js";
+
+import upload, { compressAndUpload } from '../middleware/upload.js'
 const router = express.Router();
 
+router.post("/mark", protect, upload.single("selfieUrl"), compressAndUpload, markAttendance);
 
-router.post("/mark", protect, upload.single("selfieUrl"), markAttendance);
+
+// router.post("/mark", protect, upload.single("selfieUrl"), markAttendance);
 router.get("/my", protect, getAttendanceByEmployee);
 router.get("/daily-report", protect, getDailyReport);
 router.get("/monthly-summary", protect, getMonthlySummary);
