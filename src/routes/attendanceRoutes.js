@@ -26,9 +26,9 @@ router.get("/daily-report", protect, getDailyReport);
 router.get("/monthly-summary", protect, getMonthlySummary);
 
 
-router.get("/admin/my", protect, getAttendanceByEmployeeAdmin);
-router.get("/admin/daily-report", protect, getDailyReportAdmin);
-router.get("/admin/monthly-summary", protect, getMonthlySummaryAdmin);
+router.get("/admin/my", getAttendanceByEmployeeAdmin);
+router.get("/admin/daily-report", getDailyReportAdmin);
+router.get("/admin/monthly-summary", getMonthlySummaryAdmin);
 
 
 
