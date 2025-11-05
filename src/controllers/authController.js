@@ -49,21 +49,21 @@ export const registerEmployee = async (req, res) => {
 // 📌 LOGIN EMPLOYEE
 export const loginEmployee = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { phone, password } = req.body;
 
         // Basic validation
-        if (!email || !password)
-            return res.status(400).json({ message: "Email and password are required" });
+        if (!phone || !password)
+            return res.status(400).json({ message: "phone and password are required" });
 
         // Find user
-        const employee = await Employee.findOne({ email });
+        const employee = await Employee.findOne({ phone });
         if (!employee)
-            return res.status(401).json({ message: "Invalid email or password" });
+            return res.status(401).json({ message: "Invalid phone or password" });
 
         // Check password
         const isMatch = await employee.comparePassword(password);
         if (!isMatch)
-            return res.status(401).json({ message: "Invalid email or password" });
+            return res.status(401).json({ message: "Invalid phone or password" });
 
         // Generate token
         const token = employee.generateJWT();
@@ -75,7 +75,7 @@ export const loginEmployee = async (req, res) => {
             employee: {
                 id: employee._id,
                 name: employee.name,
-                email: employee.email,
+                phone: employee.phone,
                 department: employee.department,
                 role: employee.role,
             },
