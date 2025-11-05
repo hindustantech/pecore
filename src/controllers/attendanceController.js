@@ -539,6 +539,8 @@ export const getAttendanceReport = async (req, res) => {
                 employee: record.employee.name,
                 checkIn: session?.checkIn ? formatTime(session.checkIn) : '--',
                 checkOut: session?.checkOut ? formatTime(session.checkOut) : '--',
+                checkInSelfie: session?.checkInSelfie,
+                checkOutSelfie: session?.checkOutSelfie,
                 hours: calculateHours(session?.checkIn, session?.checkOut),
                 location: getLocationString(session?.checkInLocation),
                 status: determineStatus(session),
@@ -654,7 +656,7 @@ export const getAttendanceLog = async (req, res) => {
 
 // Helper Functions
 const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString('en-IN', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
