@@ -4,8 +4,8 @@ import mongoose from "mongoose";
 import Employee from "../models/Employee.js";
 // Office Location (Patna, Bihar)
 const OFFICE = {
-    latitude: 25.6100,
-    longitude: 85.1414,
+    latitude: 25.610651995452283,
+    longitude: 85.13599231823589,
 };
 const MAX_DISTANCE_METERS = 200;
 
@@ -66,19 +66,19 @@ export const markAttendance = async (req, res) => {
         }
 
         // Geo-fence Check
-        // const distance = haversineDistance(
-        //     OFFICE.latitude,
-        //     OFFICE.longitude,
-        //     lat,
-        //     lng
-        // );
+        const distance = haversineDistance(
+            OFFICE.latitude,
+            OFFICE.longitude,
+            lat,
+            lng
+        );
 
-        // if (distance > MAX_DISTANCE_METERS) {
-        //     return res.status(403).json({
-        //         success: false,
-        //         message: `Too far: ${Math.round(distance)}m from office. Must be within 200m.`,
-        //     });
-        // }
+        if (distance > MAX_DISTANCE_METERS) {
+            return res.status(403).json({
+                success: false,
+                message: `Too far: ${Math.round(distance)}m from office. Must be within 200m.`,
+            });
+        }
 
         // Today's midnight
         const today = new Date();
@@ -489,6 +489,8 @@ export const getMonthlySummaryAdmin = async (req, res) => {
         });
     }
 };
+
+
 
 
 

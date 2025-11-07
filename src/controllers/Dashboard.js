@@ -56,6 +56,10 @@ export const getDashboardData = async (req, res) => {
                     name: employee.name,
                     checkIn: session.checkIn ? formatTime(session.checkIn) : "-",
                     checkOut: session.checkOut ? formatTime(session.checkOut) : "-",
+                    // checkInSelfie,checkOutLocation
+                    checkInSelfie: session.checkInSelfie,
+                    checkOutLocation: session.checkOutLocation,
+
                     status: hasCheckIn ? (session.checkInStatus === 'late' ? 'late' : 'present') : 'absent',
                     location: session.checkInLocation ? 'Office' : (session.checkIn ? 'Remote' : '-'),
                     image: employee.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${employee.name}`,
@@ -257,7 +261,7 @@ export const getLocationDistribution = async (req, res) => {
 // Helper function to format time
 function formatTime(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleTimeString('en-IN', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
