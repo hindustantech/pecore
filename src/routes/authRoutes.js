@@ -1,11 +1,23 @@
 import express from "express";
-import { registerEmployee, loginEmployee, getAllEmployees, getEmployeeById, getEmployeeStats, createEmployee, updateEmployee, changePassword, deleteEmployee } from "../controllers/authController.js";
+import {
+    registerEmployee,
+    loginEmployee,
+    reverseGeocode,
+    getAllEmployees,
+    getEmployeeById,
+    getEmployeeStats,
+    createEmployee,
+    updateEmployee,
+    changePassword,
+    deleteEmployee
+} from "../controllers/authController.js";
 
 const router = express.Router();
 
 router.post("/register", registerEmployee);
 router.post("/login", loginEmployee);
 
+router.get("/reverse-geocode", reverseGeocode);
 
 
 

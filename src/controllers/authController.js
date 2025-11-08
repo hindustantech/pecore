@@ -1,6 +1,7 @@
 import Employee from "../models/Employee.js";
 import asyncHandler from "express-async-handler";
 import mongoose from "mongoose";
+import fetch from "node-fetch"; // or use axios if you prefer
 
 // 📌 REGISTER EMPLOYEE
 export const registerEmployee = async (req, res) => {
@@ -526,3 +527,32 @@ export const getEmployeeStats = asyncHandler(async (req, res) => {
         });
     }
 });
+
+
+export const reverseGeocode = async (req, res) => {
+    try {
+        const { lat, lon } = req.query;
+
+        if (!lat || !lon) {
+            return res.status(400).json({ error: "Latitude and longitude are required" });
+        }
+
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+
+        const response = await fetch(url, {
+            headers: {
+                "User-Agent": "YourAppName/1.0 (your_email@example.com)", // required by Nominatim
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch data from Nominatim");
+        }
+
+        const data = await response.json();
+        res.status(200).json(data);
+    } catch (error) {
+        console.error("Reverse Geocode Error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
