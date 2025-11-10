@@ -11,7 +11,8 @@ import { errorHandler } from "./middleware/errorMiddleware.js";
 import { logger } from "./config/logger.js";
 import authRoutes from "./routes/authRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
-import darsboardroute from './routes/dashboardRoute.js'
+import darsboardroute from './routes/dashboardRoute.js';
+import adminRout from './routes/admin.js'
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/dashboard", darsboardroute);
+app.use("/api/adminRout", adminRout);
 
 app.use(errorHandler);
 

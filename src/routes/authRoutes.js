@@ -31,7 +31,7 @@ router.get("/:id", getEmployeeById); // Get employee by ID
 router.post("/", createEmployee); // Create new employee
 
 
-// ✏️ PUT/PATCH Routes
+// ✏️ PUT/PATCH Routes  
 router.put("/:id", updateEmployee); // Update employee details
 router.patch("/:id", updateEmployee); // Partial update employee
 router.patch("/:id/password", changePassword); // Change employee password
