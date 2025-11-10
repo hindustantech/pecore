@@ -2,6 +2,46 @@ import Admin from "../models/Admin.js";
 import jwt from "jsonwebtoken";
 import { sendWhatsAppOtp, verifyWhatsAppOtp } from "../config/Whatapp.js";
 
+
+// ✅ Create a new admin
+export const registerAdmin = async (req, res) => {
+  try {
+    const { name, phoneNumber, password } = req.body;
+
+    // Basic validation
+    if (!name || !phoneNumber || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Check if admin already exists
+    const existingAdmin = await Admin.findOne({ phoneNumber });
+    if (existingAdmin) {
+      return res.status(409).json({ message: "Admin already exists" });
+    }
+
+    // Create new admin
+    const admin = new Admin({ name, phoneNumber, password });
+    await admin.save();
+
+    // Generate JWT token
+    const token = await admin.generateAuthToken();
+
+    res.status(201).json({
+      message: "Admin registered successfully",
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        phoneNumber: admin.phoneNumber,
+      },
+      token,
+    });
+  } catch (error) {
+    console.error("Error in registerAdmin:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
 // Step 1: Send OTP to Admin phone number
 export const sendOtp = async (req, res) => {
     try {
@@ -10,7 +50,7 @@ export const sendOtp = async (req, res) => {
         if (!phoneNumber) {
             return res.status(400).json({ message: "Phone number is required" });
         }
-        
+
         let admin = await Admin.findOne({ phoneNumber });
         if (!admin) {
             return res.status(401).json({
