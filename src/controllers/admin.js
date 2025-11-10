@@ -70,7 +70,7 @@ export const sendOtp = async (req, res) => {
         // Return OTP uid (you’ll need this to verify)
         res.status(200).json({
             message: "OTP sent successfully",
-            uid: otpResponse.data?.uid || null,
+            uid: otpResponse || null,
         });
     } catch (error) {
         res.status(500).json({ message: "Internal server error", error: error.message });
