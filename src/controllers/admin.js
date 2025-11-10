@@ -88,7 +88,7 @@ export const verifyOtp = async (req, res) => {
 
         const verifyResponse = await verifyWhatsAppOtp(uid, otp);
         console.log("verifyResponse",verifyResponse);
-        if (!verifyResponse.success || verifyResponse.data?.status !== "success") {
+        if (!verifyResponse.success) {
             return res.status(400).json({ message: "Invalid or expired OTP" });
         }
 
