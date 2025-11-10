@@ -10,6 +10,13 @@ export const sendOtp = async (req, res) => {
         if (!phoneNumber) {
             return res.status(400).json({ message: "Phone number is required" });
         }
+        
+        let admin = await Admin.findOne({ phoneNumber });
+        if (!admin) {
+            return res.status(401).json({
+                message: "Unauthorized number",
+            });
+        }
 
         // Send OTP using helper
         const otpResponse = await sendWhatsAppOtp(phoneNumber);
@@ -18,12 +25,7 @@ export const sendOtp = async (req, res) => {
         }
 
         // If admin doesn't exist, create one temporarily
-        let admin = await Admin.findOne({ phoneNumber });
-        if (!admin) {
-            return res.status(401).json({
-                message: "Unauthorized number",
-            });
-        }
+
 
         // Return OTP uid (you’ll need this to verify)
         res.status(200).json({
