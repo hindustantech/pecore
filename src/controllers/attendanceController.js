@@ -73,12 +73,12 @@ export const markAttendance = async (req, res) => {
             lng
         );
 
-        if (distance > MAX_DISTANCE_METERS) {
-            return res.status(403).json({
-                success: false,
-                message: `Too far: ${Math.round(distance)}m from office. Must be within 200m.`,
-            });
-        }
+        // if (distance > MAX_DISTANCE_METERS) {
+        //     return res.status(403).json({
+        //         success: false,
+        //         message: `Too far: ${Math.round(distance)}m from office. Must be within 200m.`,
+        //     });
+        // }
 
         // Today's midnight
         const today = new Date();
