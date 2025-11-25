@@ -87,6 +87,10 @@ export const loginEmployee = async (req, res) => {
     }
 };
 
+export const SendOtp = async (req, res) => {
+
+}
+
 
 // ✅ Get all employees with search, filter, and pagination
 export const getAllEmployees = asyncHandler(async (req, res) => {
