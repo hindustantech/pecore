@@ -1,11 +1,15 @@
 import CompanyLead from "../models/CompanyLead.js";
-import emailService  from "../config/sendEmail.js";
-import { leadTemplate } from "../config/emailTemplates.js";
+import { sendLeadNotification, sendLeadAutoReply } from "../config/sendEmail.js";
+
+import { sendLeadNotification, sendLeadAutoReply } from "../config/emailTemplates.js";
+import { logger } from "../config/logger.js";
 /**
  * @desc    Create new company lead
  * @route   POST /api/company-leads
  * @access  Public / Admin
  */
+// leadController.js
+
 export const createCompanyLead = async (req, res) => {
     try {
         const {
@@ -20,11 +24,11 @@ export const createCompanyLead = async (req, res) => {
             source
         } = req.body;
 
-        // 🔹 Basic validation (production systems use JOI/Zod)
+        // Basic validation
         if (!name || !email || !phoneNumber || !companyName) {
             return res.status(400).json({
                 success: false,
-                message: "Required fields missing"
+                message: "Required fields missing: name, email, phoneNumber, companyName"
             });
         }
 
@@ -37,21 +41,26 @@ export const createCompanyLead = async (req, res) => {
             companyName,
             companySize,
             address,
-            tags,
-            source
+            tags: tags || [],
+            source: source || "website"
         });
-        // 🔥 Send notification email (async, non-blocking  )
-        await emailService.sendEmail(leadTemplate(lead)).catch(err => {
-            console.error("Email Send Error:", err);
+
+        // Send notifications asynchronously (non-blocking)
+        Promise.allSettled([
+            sendLeadNotification(lead),
+            sendLeadAutoReply(email, name, companyName)
+        ]).catch(err => {
+            logger.error("Email notification error:", err);
         });
 
         return res.status(201).json({
             success: true,
-            data: lead
+            data: lead,
+            message: "Lead created successfully"
         });
 
     } catch (error) {
-        console.error("Create Lead Error:", error);
+        logger.error("Create Lead Error:", error);
         return res.status(500).json({
             success: false,
             message: "Internal server error"
