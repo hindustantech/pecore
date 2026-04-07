@@ -280,7 +280,7 @@ export const sendOTP = async (to, otp) => {
 
 // Send lead notification to admin
 export const sendLeadNotification = async (lead) => {
-    const adminEmail = config.adminEmail || config.emailUser; // Configure admin email in config
+    const adminEmail = config.adminEmail; // Configure admin email in config
     return await sendEmail(
         adminEmail,
         "New Lead Captured",
@@ -298,7 +298,7 @@ export const sendLeadAutoReply = async (leadEmail, leadName, companyName) => {
         contactEmail: config.emailUser,
         contactPhone: config.contactPhone || "+1234567890"
     });
-    
+
     return await sendEmail(
         leadEmail,
         "Thank you for your interest",
