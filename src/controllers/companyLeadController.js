@@ -1,5 +1,4 @@
 import CompanyLead from "../models/CompanyLead.js";
-import { sendLeadNotification, sendLeadAutoReply } from "../config/sendEmail.js";
 
 import { sendLeadNotification, sendLeadAutoReply } from "../config/emailTemplates.js";
 import { logger } from "../config/logger.js";
