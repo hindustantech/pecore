@@ -1,4 +1,6 @@
 import CompanyLead from "../models/CompanyLead.js";
+import emailService  from "../config/sendEmail.js";
+import { leadTemplate } from "../config/emailTemplates.js";
 /**
  * @desc    Create new company lead
  * @route   POST /api/company-leads
@@ -37,6 +39,10 @@ export const createCompanyLead = async (req, res) => {
             address,
             tags,
             source
+        });
+        // 🔥 Send notification email (async, non-blocking  )
+        await emailService.sendEmail(leadTemplate(lead)).catch(err => {
+            console.error("Email Send Error:", err);
         });
 
         return res.status(201).json({
