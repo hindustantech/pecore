@@ -160,9 +160,9 @@ export const leadReplyTemplate = ({
               <!-- Header -->
               <tr>
                 <td style="background: linear-gradient(135deg, #2563eb, #7c3aed); padding:24px; color:#ffffff;">
-                  <h2 style="margin:0;">Thanks for your interest, ${name} 👋</h2>
+                  <h2 style="margin:0;">Thank you for exploring our solutions and for your interest in our company., ${name} 👋</h2>
                   <p style="margin:6px 0 0; font-size:13px; opacity:0.9;">
-                    We've received your inquiry and would love to connect
+                  We have received your inquiry and will get in touch with you shortly.
                   </p>
                 </td>
               </tr>
@@ -175,12 +175,11 @@ export const leadReplyTemplate = ({
 
                   <p>
                     Thank you for reaching out regarding <b>${companyName || "your company"}</b>.  
-                    We appreciate your interest and are excited to explore how we can help you.
+                   We appreciate your interest and look forward to exploring how we can support your requirements.
                   </p>
 
                   <p>
-                    Our team has reviewed your details, and the next step would be a quick discussion to understand your requirements better.
-                  </p>
+                    Our team will review your details and connect with you on the next working day                  </p>
 
                   <!-- CTA -->
                   ${meetingLink
