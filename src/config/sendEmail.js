@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
-
+import dotenv from "dotenv";
+dotenv.config();
 /**
  * Singleton Transporter (connection pooling like enterprise systems)
  */
