@@ -295,7 +295,7 @@ export const sendLeadAutoReply = async (leadEmail, leadName, companyName) => {
         salesPersonName: config.salesPersonName || "Sales Team",
         meetingLink: config.meetingLink || null,
         contactEmail: config.emailUser,
-        contactPhone: config.contactPhone || "+1234567890"
+        contactPhone: config.contactPhone || "8986147449"
     });
 
     return await sendEmail(
