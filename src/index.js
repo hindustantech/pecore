@@ -14,6 +14,7 @@ import attendanceRoutes from "./routes/attendanceRoutes.js";
 import darsboardroute from './routes/dashboardRoute.js';
 import adminRout from './routes/admin.js'
 import companyLeadRoutes from "./routes/companyLeadRoutes.js";
+import enqueryRoutes from "./routes/Enquery.js";
 
 dotenv.config();
 const app = express();
@@ -47,7 +48,7 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/dashboard", darsboardroute);
 app.use("/api/adminRout", adminRout);
 app.use("/api/v1/company-leads", companyLeadRoutes);
-
+app.use("/api/v1/enqueries", enqueryRoutes);
 app.use(errorHandler);
 
 const startServer = async () => {
